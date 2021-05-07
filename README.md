@@ -81,7 +81,11 @@ After the final version of the model had been developed, it was then trained on 
 
 ![alt text](https://github.com/qitoahc/icu_mortality_readmit/blob/main/images/roc_testtrain_holdout.png)
 
-Given that the performance was acceptable on the hold-out data, the final step was to then demonstrate the operational application of the model by taking a small sample of patients and running the model on each day of their admission to evaluate how the mortality risk evolved and ultimately see where it succeeded or failed.  The graph below shows this application, with the final data point for each member representing the actual correct label.   The circles around the last data points are for emphasis and color coded related to accuracy of prediction.
+Given that the performance was acceptable on the hold-out data, the final step was to then demonstrate the operational application of the model.
+bulk_member sql are the queries used to pull full member data
+
+
+by taking a small sample of patients and running the model on each day of their admission to evaluate how the mortality risk evolved and ultimately see where it succeeded or failed.  The graph below shows this application, with the final data point for each member representing the actual correct label.   The circles around the last data points are for emphasis and color coded related to accuracy of prediction.
 
 ![alt text](https://github.com/qitoahc/icu_mortality_readmit/blob/main/images/admission_predictions_by_day.png)
 
