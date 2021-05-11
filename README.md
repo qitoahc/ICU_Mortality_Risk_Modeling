@@ -61,9 +61,9 @@ The below graph shows some iterations of trig functions for the use of transform
 
 ![alt text](https://github.com/qitoahc/ICU_Mortality_Risk_Modeling/blob/master/images/trig_transform_candidates_month.png)
 
-Lab values were the next data element to consider.  What was found in the literature seemed to indicate that most of the existing work on models like this, have a 'stepwise' value mapping assigned to each lab that attempts to 'weight' the data is extreme over the data that is in the normal values.  In order to improve the scalability of this model with the end goal of 'operationalization, a simple algorithm was developed to add a 2nd-order fit to each of the lab categories such that the further from normal a given lab result is, the greater weight it gets while each label is tailored to its own normal range.  An example plot of this kind of transformation is below.  The ranges used for 'normal' ranges came from the American College of Physicians and is available ![here](https://github.com/qitoahc/ICU_Mortality_Risk_Modeling/blob/master/reference/ACP%20normal-lab-values.pdf)
+Lab values were the next data element to consider.  What was found in the literature seemed to indicate that most of the existing work on models like this, have a 'stepwise' value mapping assigned to each lab that attempts to 'weight' the data is extreme over the data that is in the normal values.  In order to improve the scalability of this model with the end goal of 'operationalization, a simple algorithm was developed to add a 2nd-order fit to each of the lab categories such that the further from normal a given lab result is, the greater weight it gets while each label is tailored to its own normal range.  An example plot of this kind of transformation applied over a range of lab values is below.  The ranges used for 'normal' ranges came from the American College of Physicians and is available ![here](https://github.com/qitoahc/ICU_Mortality_Risk_Modeling/blob/master/reference/ACP%20normal-lab-values.pdf)
 
-![alt text](graph of example lab change)
+![alt text](https://github.com/qitoahc/ICU_Mortality_Risk_Modeling/blob/master/images/lab_transform.PNG)
 
 Additional featurization and/or transformations that were used were:
 1. Creation of a re-admission flag on admissions that represented a readmission to the hospital within 30 days of a prior readmission
@@ -88,7 +88,7 @@ bulk_member sql are the queries used to pull full member data
 
 by taking a small sample of patients and running the model on each day of their admission to evaluate how the mortality risk evolved and ultimately see where it succeeded or failed.  The graph below shows this application, with the final data point for each member representing the actual correct label.   The circles around the last data points are for emphasis and color coded related to accuracy of prediction.
 
-![alt text](https://github.com/qitoahc/ICU_Mortality_Risk_Modeling/blob/master/images/admission_predictions_by_day.png)
+![alt text](https://public.tableau.com/profile/jesse.southworth#!/vizhome/ICUMortalityDashboard_16195670538950/ICUDashboard)
 
 
 ## **Credits and Resources**:
