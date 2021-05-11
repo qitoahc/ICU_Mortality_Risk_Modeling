@@ -88,7 +88,7 @@ bulk_member sql are the queries used to pull full member data
 
 by taking a small sample of patients and running the model on each day of their admission to evaluate how the mortality risk evolved and ultimately see where it succeeded or failed.  The graph below shows this application, with the final data point for each member representing the actual correct label.   The circles around the last data points are for emphasis and color coded related to accuracy of prediction.
 
-![alt text](https://public.tableau.com/profile/jesse.southworth#!/vizhome/ICUMortalityDashboard_16195670538950/ICUDashboard)
+[Proof of concept dashboard](https://public.tableau.com/profile/jesse.southworth#!/vizhome/ICUMortalityDashboard_16195670538950/ICUDashboard)
 
 
 ## **Credits and Resources**:
