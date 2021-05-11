@@ -38,7 +38,7 @@ Once everything was cleaned and loaded initial exploratory analysis was performe
 4. Burn and transplant patients (identified through parsing of admitting diagnosis field, historically excluded due to unique dynamics of these patients)
 5. Admissions with dates of death prior to the admission date (these appear to be tied to organ transplant cases and reflect the donor admission)
 
-The SQL query used for managing the exclusions can be found ![here](https://github.com/qitoahc/icu_mortality_readmit/blob/main/src/mt_exclusion_critiera_table.sql) 
+The SQL query used for managing the exclusions can be found within the data prep pipeline code ![here](https://github.com/qitoahc/ICU_Mortality_Risk_Modeling/blob/master/src/data_prep_pipeline.py) 
 
 Next, a cohort and hold-out table was created in the database and the admission records were processed through python to exclude those admissions meeting exclusion criteria, splitting the remaining data into training and hold-out sets, and then updating the appropriate database tables with the necessary patient, admission, and icu stay id's for future reference.  Because of the large volume of data and desire to have adequate testing data, a 60/40 split was set between train/test and hold-out.  All future exploratory analysis, featurization development, model development, and model evaluation was completed using the train/test set of data to ensure no leakage or unncessary bias crept into the development.  The code for creating the split and populating the tables is here ![here](https://github.com/qitoahc/icu_mortality_readmit/blob/main/src/data_prep_pipeline.py) and it leverages helper functions from ![here](https://github.com/qitoahc/icu_mortality_readmit/blob/main/src/mimic_fxns.py).  It also bears mentioning that for the purposes of this project and it's outcomes (mortality prediction 'in real time' during an admission) the data reflecting billing and coding details were ignored as they would not be present in an EMR for a given patient during their admission.
 
@@ -46,27 +46,27 @@ Based on discussions with a clinical leader from a prominent NW academic medical
 
 The following graph was used to assess that there was sufficient data present to support the use of the 4 day in advance timeframe.  
 
-![alt text](https://github.com/qitoahc/icu_mortality_readmit/blob/main/images/icu_hosp_los.png)
+![alt text](https://github.com/qitoahc/ICU_Mortality_Risk_Modeling/blob/main/images/icu_hosp_los.png)
 
 The next step taken was to transform the calculated ages to decades.  This was done after replacing the ages >200 years old with the median value of 91.4 that is published regarding the data prior to de-identification process.  The mortality rates (in-hosptial and within 4 days of discharge) by age decade were compared in the graph below, which shows there does appear to be a relationship between mortality and age and that this treatment can adequately handle the modified ages for people over 89. 
 
-![alt text](https://github.com/qitoahc/icu_mortality_readmit/blob/main/images/mortality_rate_by_age_in_decades.png)
+![alt text](https://github.com/qitoahc/ICU_Mortality_Risk_Modeling/blob/main/images/mortality_rate_by_age_in_decades.png)
 
 The next data element that was explored was that of the date of admission.  As stated above, because of the modifications made to the dates, only hte month of the year was leverageable.  The graph below shows the mortality rates by admission month.
 
-![alt text](https://github.com/qitoahc/icu_mortality_readmit/blob/main/images/mortality_rate_by_month.png)
+![alt text](https://github.com/qitoahc/ICU_Mortality_Risk_Modeling/blob/main/images/mortality_rate_by_month.png)
 
 The below graph shows some iterations of trig functions for the use of transforming the date information, with the product of sin and cos being the transformation that was used.
 
-![alt text](https://github.com/qitoahc/icu_mortality_readmit/blob/main/images/trig_transform_candidates_month.png)
+![alt text](https://github.com/qitoahc/ICU_Mortality_Risk_Modeling/blob/main/images/trig_transform_candidates_month.png)
 
-Lab values were the next data element to consider.  What was found in the literature seemed to indicate that most of the existing work on models like this, have a 'stepwise' value mapping assigned to each lab that attempts to 'weight' the data is extreme over the data that is in the normal values.  In order to improve the scalability of this model with the end goal of 'operationalization, a simple algorithm was developed to add a 2nd-order fit to each of the lab categories such that the further from normal a given lab result is, the greater weight it gets while each label is tailored to its own normal range.  An example plot of this kind of transformation is below.  The ranges used for 'normal' ranges came from the American College of Physicians and is available ![here](https://github.com/qitoahc/icu_mortality_readmit/blob/main/reference/ACP%20normal-lab-values.pdf)
+Lab values were the next data element to consider.  What was found in the literature seemed to indicate that most of the existing work on models like this, have a 'stepwise' value mapping assigned to each lab that attempts to 'weight' the data is extreme over the data that is in the normal values.  In order to improve the scalability of this model with the end goal of 'operationalization, a simple algorithm was developed to add a 2nd-order fit to each of the lab categories such that the further from normal a given lab result is, the greater weight it gets while each label is tailored to its own normal range.  An example plot of this kind of transformation is below.  The ranges used for 'normal' ranges came from the American College of Physicians and is available ![here](https://github.com/qitoahc/ICU_Mortality_Risk_Modeling/blob/main/reference/ACP%20normal-lab-values.pdf)
 
 ![alt text](graph of example lab change)
 
 Additional featurization and/or transformations that were used were:
 1. Creation of a re-admission flag on admissions that represented a readmission to the hospital within 30 days of a prior readmission
-   a. ![Readmit Flag SQL](https://github.com/qitoahc/icu_mortality_readmit/blob/main/src/readmission_flag_creation.sql)
+   a. ![Readmit Flag SQL](https://github.com/qitoahc/ICU_Mortality_Risk_Modeling/blob/main/src/readmission_flag_creation.sql)
 2. One-Hot Encoding of Marital Status, Regigion, and Insurance coverage
 3. Chronic condition flags - identified via parsing admitting diagnosis description field to capture conditions outlined in the literature [2]
    a.  Encoding for each: AIDS, cirrhosis, hepatic failure, immunosupression, lymphoma, leukemia or myeloma, metastatic tumor
@@ -75,11 +75,11 @@ Additional featurization and/or transformations that were used were:
 ## **Model Development and Implementation**:
 Ultimately the Logistic Regression model was developed first by building up the feature set used and then adjusting the regularization hyperparameter to land at the final version of the model.  The initial baseline model started with the following features: admission month, gender, admit type (elective, urgent, etc.), first care unit (Critical Care Unit, Intensive Care Unit, etc.), and readmission within 30 days.  Features were then added and the model re-evaluated.  The iterative development was done leveraging 6-fold cross-validation on a 75% split of the test/train data set pulled out at the beginning.  Because of the two-fold use of the model there is critical importance to maximizing the true positives identified while also minimizing the amount of false positives.  Because of this, ROC curves and 'Area Under The Curve' (AUC) were used in the evaluation.  The iterative process and resulting ROC curves are shown below:
 
-![alt text](https://github.com/qitoahc/icu_mortality_readmit/blob/main/images/development_evaluation_iterations.PNG)
+![alt text](https://github.com/qitoahc/ICU_Mortality_Risk_Modeling/blob/main/images/development_evaluation_iterations.PNG)
 
 After the final version of the model had been developed, it was then trained on the full test/train data set (60% of total data) and evaluated against the accurate labels.  The hold-out data was now brought in and used with the fit model to evaluate it's performance.  As the graph below shows, there's a very similar performance level of the model between the hold-out and train data sets.
 
-![alt text](https://github.com/qitoahc/icu_mortality_readmit/blob/main/images/roc_testtrain_holdout.png)
+![alt text](https://github.com/qitoahc/ICU_Mortality_Risk_Modeling/blob/main/images/roc_testtrain_holdout.png)
 
 Given that the performance was acceptable on the hold-out data, the final step was to then demonstrate the operational application of the model.
 bulk_member sql are the queries used to pull full member data
@@ -87,7 +87,7 @@ bulk_member sql are the queries used to pull full member data
 
 by taking a small sample of patients and running the model on each day of their admission to evaluate how the mortality risk evolved and ultimately see where it succeeded or failed.  The graph below shows this application, with the final data point for each member representing the actual correct label.   The circles around the last data points are for emphasis and color coded related to accuracy of prediction.
 
-![alt text](https://github.com/qitoahc/icu_mortality_readmit/blob/main/images/admission_predictions_by_day.png)
+![alt text](https://github.com/qitoahc/ICU_Mortality_Risk_Modeling/blob/main/images/admission_predictions_by_day.png)
 
 
 ## **Credits and Resources**:
