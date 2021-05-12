@@ -1,4 +1,4 @@
-# Predictive Modeling of ICU Mortality
+# ICU Mortality Risk Prediction: Model Development and Operational Application
 
 ![alt text](https://github.com/qitoahc/ICU_Mortality_Risk_Modeling/blob/master/images/intheroom.PNG)
 
