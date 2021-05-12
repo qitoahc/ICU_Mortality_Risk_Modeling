@@ -77,6 +77,10 @@ Additional featurization and/or transformations that were used were:
    b.  Aggregate chronic condition field with value for the number of chronic conditions flagged
    
 ## **Model Development and Implementation**:
+The general model development process that was followed can be seen in the flowchart below - including the initial data setup, extraction, featurization, training, and evaluation steps.  
+
+![alt text]()
+
 Ultimately the Logistic Regression model was developed first by building up the feature set used and then adjusting the regularization hyperparameter to land at the final version of the model.  The initial baseline model started with the following features: admission month, gender, admit type (elective, urgent, etc.), first care unit (Critical Care Unit, Intensive Care Unit, etc.), and readmission within 30 days.  Features were then added and the model re-evaluated.  The iterative development was done leveraging 6-fold cross-validation on a 75% split of the test/train data set pulled out at the beginning.  Because of the two-fold use of the model there is critical importance to maximizing the true positives identified while also minimizing the amount of false positives.  Because of this, ROC curves and 'Area Under The Curve' (AUC) were used in the evaluation.  The iterative process and resulting ROC curves are shown below:
 
 ![alt text](https://github.com/qitoahc/ICU_Mortality_Risk_Modeling/blob/master/images/development_evaluation_iterations.PNG)
