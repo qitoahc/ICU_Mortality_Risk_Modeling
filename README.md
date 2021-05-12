@@ -71,11 +71,11 @@ The next substantial feature developed was related to echocardiogram (ECHO) and 
 
 Additional featurization and/or transformations that were used were:
 1. Creation of a re-admission flag on admissions that represented a readmission to the hospital within 30 days of a prior readmission
-   a. ![Readmit Flag SQL](https://github.com/qitoahc/ICU_Mortality_Risk_Modeling/blob/master/src/readmission_flag_creation.sql)
+   * ![Readmit Flag SQL](https://github.com/qitoahc/ICU_Mortality_Risk_Modeling/blob/master/src/readmission_flag_creation.sql)
 2. One-Hot Encoding of Marital Status, Religion, and Insurance coverage
-3. Chronic condition flags - identified via parsing admitting diagnosis description field to capture conditions outlined in the literature [2]
-   a.  Encoding for each: AIDS, cirrhosis, hepatic failure, immunosupression, lymphoma, leukemia or myeloma, metastatic tumor
-   b.  Aggregate chronic condition field with value for the number of chronic conditions flagged
+3. Chronic condition flags - identified by parsing admitting diagnosis description field to capture conditions outlined in the literature [2]
+   *  Encoding for each: AIDS, cirrhosis, hepatic failure, immunosupression, lymphoma, leukemia or myeloma, metastatic tumor
+   *  Aggregate chronic condition field with value for the number of chronic conditions flagged
    
 ## **Model Development**:
 The model development process that was followed can be seen in the flowchart below - including the initial data setup, extraction, featurization, training, and evaluation steps.    
@@ -88,7 +88,7 @@ The first model developed was a logistic regression model.  This was built up it
 
 Next a random forest model was developed with the same feature set.  Hyperparameter tuning was done leveraging grid search functionality within SKLearn.  The final model performance as well as the 10 most important features by fraction of samples affected are shown below:
 
-![alt text]()
+![alt text](https://github.com/qitoahc/ICU_Mortality_Risk_Modeling/blob/master/images/random_forest_final_model_performance.PNG)
 
 In looking into more details behind each model developed, it seemed that the logistic regression model tended to err towards false positives (as in someone had a high mortality risk when in fact they survived) while the random forest model erred towards false negatives.  Attempts were made to leverage both models together in an ensemble approach (using logistic regression as an input to random forest, aggregating predicted probabilities, and adjusting probability thresholds) but no significant performance improvement was achieved leading to a decision to stick with the random forest model as the final model for the benefit of simplicity and interpretability. 
 
