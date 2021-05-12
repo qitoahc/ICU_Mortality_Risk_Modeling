@@ -6,7 +6,8 @@
 1. [Intro and Motivation](#intro-and-motivation)
 2. [Data Sourcing and Storage](#data-sourcing-and-storage)
 3. [Featurization and Analysis](#featurization-and-analysis)
-4. [Model Development and Implementation](#model-development-and-implementation)   
+4. [Model Development](#model-development)
+5. [Operational Proof of Concept](#operational-proof-of-concept)   
    
 ## **Intro and Motivation**: 
 As someone who has worked in Healthcare for years, I've seen first hand the complexities involved with delivering coordinated, timely, and personalized care to patients in need.  Whether it's the legion of constantly rotating clincal teams and handoffs, competing demands for clinical focus, technology dedicated to billing over patient care, or even the incomprehensible complexities of the networks and products offered to consumers...the industry has no end of complications.  I've also seen a fair share of data science related initiatives fail to deliver value because of chasms between the industry expertise and technical teams.  Standing out amongst all of this is the growing opportunity for applying data science directly to the processes of patient care.  Many healthcare organizations have moved past their multi-year electronic medical record (EMR) implementations, implemented foundational data architectures, and are actively engaging in reimbursement models that incentivize optimizing the management of total costs of care (vs. legacy models where more care equals more money).  Two particular trends of interest are that of the growing focus on end-of-life (including but not limited to palliative) care and penalties for readmissions and/or poor patient outcomes.  
@@ -76,26 +77,27 @@ Additional featurization and/or transformations that were used were:
    a.  Encoding for each: AIDS, cirrhosis, hepatic failure, immunosupression, lymphoma, leukemia or myeloma, metastatic tumor
    b.  Aggregate chronic condition field with value for the number of chronic conditions flagged
    
-## **Model Development and Implementation**:
-The general model development process that was followed can be seen in the flowchart below - including the initial data setup, extraction, featurization, training, and evaluation steps.  
+## **Model Development**:
+The model development process that was followed can be seen in the flowchart below - including the initial data setup, extraction, featurization, training, and evaluation steps.    
+
+![alt text](https://github.com/qitoahc/ICU_Mortality_Risk_Modeling/blob/master/images/model_development_pipeline.PNG)
+
+The first model developed was a logistic regression model.  This was built up iteratively, starting with the admission/demographics features then adding in labs, vitals, and finally the chart notes.  Because of the two-fold use of the model there is critical importance to maximizing the true positives identified while also minimizing the amount of false positives.  Because of this, ROC curves and 'Area Under The Curve' (AUC) were used in the evaluation.  The iterative process and resulting ROC curves can be found [here](https://github.com/qitoahc/ICU_Mortality_Risk_Modeling/blob/master/images/development_evaluation_iterations.PNG).  The final performance of the logistic regression model can be seen below:
+
+![alt text](https://github.com/qitoahc/ICU_Mortality_Risk_Modeling/blob/master/images/final_logreg_model_performance.png)
+
+Next a random forest model was developed with the same feature set.  Hyperparameter tuning was done leveraging grid search functionality within SKLearn.  The final model performance as well as the 10 most important features by fraction of samples affected are shown below:
 
 ![alt text]()
 
-Ultimately the Logistic Regression model was developed first by building up the feature set used and then adjusting the regularization hyperparameter to land at the final version of the model.  The initial baseline model started with the following features: admission month, gender, admit type (elective, urgent, etc.), first care unit (Critical Care Unit, Intensive Care Unit, etc.), and readmission within 30 days.  Features were then added and the model re-evaluated.  The iterative development was done leveraging 6-fold cross-validation on a 75% split of the test/train data set pulled out at the beginning.  Because of the two-fold use of the model there is critical importance to maximizing the true positives identified while also minimizing the amount of false positives.  Because of this, ROC curves and 'Area Under The Curve' (AUC) were used in the evaluation.  The iterative process and resulting ROC curves are shown below:
+In looking into more details behind each model developed, it seemed that the logistic regression model tended to err towards false positives (as in someone had a high mortality risk when in fact they survived) while the random forest model erred towards false negatives.  Attempts were made to leverage both models together in an ensemble approach (using logistic regression as an input to random forest, aggregating predicted probabilities, and adjusting probability thresholds) but no significant performance improvement was achieved leading to a decision to stick with the random forest model as the final model for the benefit of simplicity and interpretability. 
 
-![alt text](https://github.com/qitoahc/ICU_Mortality_Risk_Modeling/blob/master/images/development_evaluation_iterations.PNG)
+## **Operational Proof of Concept**:
+With a final model developed, the next step was to create a pipeline for creating daily data across all admissions to enable proof-of-concept reporting to demonstrate the operational applicability of EMR data and a predictive mortality risk model.  The pipeline flow, including the key transformation of carrying forward 'last available' data to ensure daily data was present, is represented in the diagram below:
 
-After the final version of the model had been developed, it was then trained on the full test/train data set (60% of total data) and evaluated against the accurate labels.  The hold-out data was now brought in and used with the fit model to evaluate it's performance.  As the graph below shows, there's a very similar performance level of the model between the hold-out and train data sets.
+![alt text](https://github.com/qitoahc/ICU_Mortality_Risk_Modeling/blob/master/images/dashboard_creation_pipeline.PNG)
 
-![alt text](https://github.com/qitoahc/ICU_Mortality_Risk_Modeling/blob/master/images/roc_testtrain_holdout.png)
-
-Given that the performance was acceptable on the hold-out data, the final step was to then demonstrate the operational application of the model.
-bulk_member sql are the queries used to pull full member data
-
-
-by taking a small sample of patients and running the model on each day of their admission to evaluate how the mortality risk evolved and ultimately see where it succeeded or failed.  The graph below shows this application, with the final data point for each member representing the actual correct label.   The circles around the last data points are for emphasis and color coded related to accuracy of prediction.
-
-[Proof of concept dashboard](https://public.tableau.com/profile/jesse.southworth#!/vizhome/ICUMortalityDashboard_16195670538950/ICUDashboard)
+After creating the daily data set, an extract representing a full ICU ward of 77 patients was created and then loaded to Tableau for dashboard creation.  The dashboard is meant to show how biometric and risk data could be compiled into an interactive dashboard enabling someone to see the status of the entire ICU at one view while enabling drill down by risk or specific patient to get daily trending data.  The dashboard proof of concept can be found on Tableau's Public site at this link: [Proof of concept dashboard](https://public.tableau.com/profile/jesse.southworth#!/vizhome/ICUMortalityDashboard_16195670538950/ICUDashboard)
 
 
 ## **Credits and Resources**:
